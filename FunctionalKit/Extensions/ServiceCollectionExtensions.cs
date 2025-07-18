@@ -3,12 +3,13 @@ using System.Reflection;
 using FunctionalKit.Core.Messaging;
 using FunctionalKit.Core.Messaging.PipelineBehaviors;
 using FunctionalKit.Behaviors;
+using FunctionalKit.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace FunctionalKit.Extensions;
 
 /// <summary>
-/// Extension methods for IServiceCollection to register FunctionalKit services
+/// Enhanced extension methods for IServiceCollection to register FunctionalKit services
 /// </summary>
 public static class ServiceCollectionExtensions
 {
@@ -17,13 +18,56 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddFunctionalKit(this IServiceCollection services, params Assembly[] assemblies)
     {
-        services.AddScoped<IMessenger, Messenger>();
+        services.AddScoped<IMessenger, PipelineMessenger>();
         
         if (assemblies.Length == 0)
             assemblies = new[] { Assembly.GetCallingAssembly() };
 
         RegisterHandlers(services, assemblies);
         RegisterPipelineBehaviors(services, assemblies);
+        
+        return services;
+    }
+
+    /// <summary>
+    /// Adds FunctionalKit with behavior configuration
+    /// </summary>
+    public static IServiceCollection AddFunctionalKit(this IServiceCollection services, 
+        Action<BehaviorOptions> configure, 
+        params Assembly[] assemblies)
+    {
+        var options = new BehaviorOptions();
+        configure(options);
+        
+        services.AddSingleton(options);
+        services.AddFunctionalKit(assemblies);
+        
+        return services.AddFunctionalKitBehaviors(configure);
+    }
+
+    /// <summary>
+    /// Adds behaviors based on configuration
+    /// </summary>
+    public static IServiceCollection AddFunctionalKitBehaviors(this IServiceCollection services, 
+        Action<BehaviorOptions> configure)
+    {
+        var options = new BehaviorOptions();
+        configure(options);
+        
+        if (options.EnableLogging) 
+            services.AddFunctionalKitLogging();
+        
+        if (options.EnableValidation) 
+            services.AddFunctionalKitValidation();
+        
+        if (options.EnableCaching) 
+            services.AddFunctionalKitCaching();
+        
+        if (options.EnablePerformanceMonitoring) 
+            services.AddFunctionalKitPerformanceMonitoring(options.SlowQueryThresholdMs);
+        
+        if (options.EnableRetry) 
+            services.AddFunctionalKitRetry(options.MaxRetries, options.RetryDelay);
         
         return services;
     }
@@ -46,6 +90,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped(typeof(IQueryPipelineBehavior<,>), typeof(QueryValidationBehavior<,>));
         services.AddScoped(typeof(ICommandPipelineBehavior<>), typeof(CommandValidationBehavior<>));
         services.AddScoped(typeof(ICommandPipelineBehavior<,>), typeof(CommandValidationBehavior<,>));
+        services.AddScoped(typeof(IQueryPipelineBehavior<,>), typeof(QueryAsyncValidationBehavior<,>));
+        services.AddScoped(typeof(ICommandPipelineBehavior<>), typeof(CommandAsyncValidationBehavior<>));
         return services;
     }
 
@@ -68,7 +114,8 @@ public static class ServiceCollectionExtensions
         {
             var loggerType = typeof(ILogger<>).MakeGenericType(typeof(QueryPerformanceBehavior<,>));
             var logger = serviceProvider.GetRequiredService(loggerType);
-            return Activator.CreateInstance(typeof(QueryPerformanceBehavior<,>), logger, slowQueryThresholdMs) ?? throw new InvalidOperationException("Failed to create QueryPerformanceBehavior instance.");
+            return Activator.CreateInstance(typeof(QueryPerformanceBehavior<,>), logger, slowQueryThresholdMs) 
+                ?? throw new InvalidOperationException("Failed to create QueryPerformanceBehavior instance.");
         });
         return services;
     }
@@ -79,8 +126,46 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddFunctionalKitRetry(this IServiceCollection services, int maxRetries = 3, TimeSpan? delay = null)
     {
         services.AddScoped(typeof(IQueryPipelineBehavior<,>), _ => 
-            Activator.CreateInstance(typeof(QueryRetryBehavior<,>), maxRetries, delay) ?? throw new InvalidOperationException("Failed to create QueryRetryBehavior instance."));
+            Activator.CreateInstance(typeof(QueryRetryBehavior<,>), maxRetries, delay) 
+                ?? throw new InvalidOperationException("Failed to create QueryRetryBehavior instance."));
         return services;
+    }
+
+    /// <summary>
+    /// Adds circuit breaker behavior to the pipeline
+    /// </summary>
+    public static IServiceCollection AddFunctionalKitCircuitBreaker(this IServiceCollection services, 
+        int failureThreshold = 5, 
+        TimeSpan circuitOpenDuration = default)
+    {
+        if (circuitOpenDuration == default)
+            circuitOpenDuration = TimeSpan.FromMinutes(1);
+            
+        services.AddSingleton<CircuitBreakerState>();
+        services.AddScoped(typeof(IQueryPipelineBehavior<,>), typeof(QueryCircuitBreakerBehavior<,>));
+        
+        // Register the configuration
+        services.AddSingleton(new CircuitBreakerOptions 
+        { 
+            FailureThreshold = failureThreshold, 
+            CircuitOpenDuration = circuitOpenDuration 
+        });
+        
+        return services;
+    }
+
+    /// <summary>
+    /// Adds all common behaviors with default configuration
+    /// </summary>
+    public static IServiceCollection AddFunctionalKitDefaults(this IServiceCollection services, params Assembly[] assemblies)
+    {
+        return services.AddFunctionalKit(options =>
+        {
+            options.EnableLogging = true;
+            options.EnableValidation = true;
+            options.EnablePerformanceMonitoring = true;
+            options.SlowQueryThresholdMs = 1000;
+        }, assemblies);
     }
 
     private static void RegisterHandlers(IServiceCollection services, Assembly[] assemblies)
