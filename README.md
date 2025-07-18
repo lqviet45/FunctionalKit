@@ -129,8 +129,8 @@ var user = await messenger.QueryAsync(new GetUserQuery(123));
 
 ## 📚 Documentation
 
-- **[API Reference](API_REFERENCE.md)** - Complete method documentation
-- **[Usage Guide](USAGE_GUIDE.md)** - Practical examples and patterns
+- **[API Reference](doc/API_REFERENCE.md)** - Complete method documentation
+- **[Usage Guide](doc/USAGE_GUIDE.md)** - Practical examples and patterns
 - **[Migration Guide](#)** - Coming from other libraries
 - **[Best Practices](#)** - Recommended patterns and practices
 
