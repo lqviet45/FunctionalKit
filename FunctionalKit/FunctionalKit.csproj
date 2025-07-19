@@ -9,12 +9,25 @@
         <!-- NuGet Package Information -->
         <PackageId>FunctionalKit</PackageId>
         <Authors>Le Quoc Viet</Authors>
-        <Description>A comprehensive functional programming library for .NET 8+ with Optional, Result, Either patterns and a powerful CQRS messaging system.</Description>
+        <Description>A comprehensive functional programming library for .NET 8+ featuring Optional, Result, Either patterns, validation, and a powerful CQRS messaging system. Provides type-safe alternatives to null handling and exception-based error handling.</Description>
+        <Summary>Functional programming patterns (Optional, Result, Either) and CQRS messaging for .NET</Summary>
         <PackageTags>functional;programming;optional;result;either;cqrs;mediatr;railway;validation</PackageTags>
+        <PackageTags>functional;programming;optional;result;either;cqrs;mediatr;railway;validation;dotnet;csharp</PackageTags>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-        <RepositoryUrl>https://github.com/lqviet45/FunctionalKit</RepositoryUrl>
         <PackageProjectUrl>https://github.com/lqviet45/FunctionalKit</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/lqviet45/FunctionalKit</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
         <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageReleaseNotes>
+            Initial release of FunctionalKit v1.0.0
+            - Optional&lt;T&gt; pattern for null-safe operations
+            - Result&lt;T&gt; pattern for error handling without exceptions
+            - Either&lt;TLeft, TRight&gt; for union types
+            - Validation&lt;T&gt; for error accumulation
+            - Complete CQRS messaging system with pipeline behaviors
+            - Railway-oriented programming support
+            - Comprehensive extension methods library
+        </PackageReleaseNotes>
         
         <!-- Source Link for debugging -->
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -22,11 +35,18 @@
         <IncludeSymbols>true</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
         
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+
+        <!-- Language and Framework -->
+        <LangVersion>latest</LangVersion>
+        <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+        <WarningsAsErrors />
+        <WarningsNotAsErrors />
     </PropertyGroup>
 
     <ItemGroup>
-        <None Include="README.md" Pack="true" PackagePath="\" />
+        <None Include="../README.md" Pack="true" PackagePath="\" />
+        <None Include="../LICENSE" Pack="true" PackagePath="\" />
     </ItemGroup>
 
     <ItemGroup>
