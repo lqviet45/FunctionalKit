@@ -4,6 +4,16 @@
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <Version>8.0.0</Version>
+        
+        <PackageId>FunctionalKit</PackageId>
+        <Authors>Le Quoc Viet</Authors>
+        <Description>Functional programming utilities for .NET</Description>
+        <PackageTags>functional, programming, utilities, dotnet</PackageTags>
+        <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+        <RepositoryUrl>https://github.com/lqviet45/FunctionalKit</RepositoryUrl>
+        
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
 
     <ItemGroup>
