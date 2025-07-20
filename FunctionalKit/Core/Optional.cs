@@ -43,8 +43,7 @@ public readonly struct Optional<T> : IEquatable<Optional<T>>
     /// </summary>
     public static Optional<T> Of(T value)
     {
-        if (value == null)
-            throw new ArgumentNullException(nameof(value));
+        ArgumentNullException.ThrowIfNull(value);
         return new Optional<T>(value, true);
     }
 
